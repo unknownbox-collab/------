@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>297</height>
+    <width>423</width>
+    <height>409</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>801</width>
-     <height>391</height>
+     <x>-10</x>
+     <y>-10</y>
+     <width>811</width>
+     <height>421</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -32,110 +32,33 @@
     <number>-1</number>
    </property>
   </widget>
-  <widget class="QPushButton" name="voteBtn">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>190</y>
-     <width>251</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Noto Sans CJK KR Black</family>
-     <pointsize>12</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color : #FFFCDC;
-border-radius : 5px;</string>
-   </property>
-   <property name="text">
-    <string>실시간 투표</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="welcomeLabel">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>801</width>
-     <height>71</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Noto Sans CJK KR Black</family>
-     <pointsize>20</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>님 반갑습니다!</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="shuffleBtn">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>140</y>
-     <width>251</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Noto Sans CJK KR Black</family>
-     <pointsize>12</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color : #FFFCDC;
-border-radius : 5px;</string>
-   </property>
-   <property name="text">
-    <string>반 자리 배치</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="msgBtn">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>90</y>
-     <width>251</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Noto Sans CJK KR Black</family>
-     <pointsize>12</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color : #FFFCDC;
-border-radius : 5px;</string>
-   </property>
-   <property name="text">
-    <string>메신저</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="logoutBtn">
+  <widget class="QListWidget" name="optionList">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>260</y>
+     <y>50</y>
+     <width>401</width>
+     <height>271</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Noto Sans CJK KR Black</family>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius : 5px;
+background-color : #ffffff;
+border-color : #000000;</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="goBackBtn">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>370</y>
      <width>101</width>
      <height>31</height>
     </rect>
@@ -153,7 +76,94 @@ border-radius : 5px;</string>
 border-radius : 5px;</string>
    </property>
    <property name="text">
-    <string>로그아웃</string>
+    <string>돌아가기</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="joinCodeLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>330</y>
+     <width>421</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Noto Sans CJK KR Black</family>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>참여 코드 :</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="endVoteBtn">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>370</y>
+     <width>101</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Noto Sans CJK KR Black</family>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color : rgb(255, 89, 24);
+border-radius : 5px;</string>
+   </property>
+   <property name="text">
+    <string>투표 종료</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="subjectComboBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>11</y>
+     <width>401</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Noto Sans CJK KR Black</family>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QComboBox{
+background-color : #84DFFF;
+border-radius : 5px;
+border : solid;
+border-color : black;
+border-width : 2px;
+}
+QComboBox::drop-down{
+     subcontrol-origin: padding;
+     subcontrol-position: top right;
+     width: 15px;
+     color: white;
+     border-left-width: 0px;
+     border-left-style: solid;
+     border-top-right-radius: 3px;
+     border-bottom-right-radius: 3px;
+     padding-left: 10px;
+ }
+</string>
    </property>
   </widget>
  </widget>

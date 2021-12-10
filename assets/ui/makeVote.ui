@@ -178,7 +178,7 @@ border-radius : 5px;</string>
     <string>선택지 수정</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="publishBtn">
+  <widget class="QPushButton" name="nextBtn">
    <property name="geometry">
     <rect>
      <x>300</x>
@@ -231,13 +231,13 @@ border-color : #000000;</string>
      <x>130</x>
      <y>320</y>
      <width>321</width>
-     <height>31</height>
+     <height>41</height>
     </rect>
    </property>
    <property name="font">
     <font>
      <family>Noto Sans CJK KR Black</family>
-     <pointsize>15</pointsize>
+     <pointsize>12</pointsize>
      <weight>75</weight>
      <bold>true</bold>
     </font>

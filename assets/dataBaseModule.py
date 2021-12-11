@@ -1,5 +1,5 @@
 import sqlite3
-from parameter import *
+from assets.parameter import *
 
 class DataBase:
     def __init__(self,tableName,**options) -> None:

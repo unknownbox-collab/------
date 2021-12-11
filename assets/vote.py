@@ -23,9 +23,11 @@ voteCode = ''
 
 voteSelect = []
 voteAchieveDB = DataBase('vote', userId = 'text', result = 'text', date = 'text')
-USER_ID = 0
-RESULT = 1
-DATE = 2
+ID = 0
+USER_ID = 1
+RESULT = 2
+DATE = 3
+
 class GetFireBaseInfo(QThread):
     update = pyqtSignal(bool)
     def __init__(self, interest):
@@ -490,8 +492,8 @@ class VoteAchieveWindow(QMainWindow, QWidget, FORM_VOTE_ACHIEVE):
         self.removeBtn.hide()
         self.viewBtn.hide()
         self.achieveList.clicked.connect(self.showTools)
-        achieve = voteAchieveDB.select(f'userId = "{userId}"')
-        self.achieveList.addItems(['/'.join(eval(achieve[i][RESULT]))[:20]+("..." if len('/'.join(eval(achieve[i][RESULT]))) > 20 else "")+" ("+achieve[i][DATE]+")" for i in range(len(achieve))[::-1]])
+        self.achieve = voteAchieveDB.select(f'userId = "{userId}"')
+        self.achieveList.addItems(['/'.join(eval(self.achieve[i][RESULT]))[:20]+("..." if len('/'.join(eval(self.achieve[i][RESULT]))) > 20 else "")+" ("+self.achieve[i][DATE]+")" for i in range(len(self.achieve))[::-1]])
 
     def view(self):
         self.vote = ViewVoteAchieveWindow(self.achieveList.currentRow())
@@ -499,9 +501,15 @@ class VoteAchieveWindow(QMainWindow, QWidget, FORM_VOTE_ACHIEVE):
         self.close()
 
     def removeAchieve(self):
+        deletedItemId = self.achieve[self.achieveList.currentRow()][ID]
+        voteAchieveDB.excute(f'''
+            DELETE FROM 'vote' WHERE id = {deletedItemId}
+        ''')
         self.achieveList.takeItem(self.achieveList.currentRow())
+        self.achieve = voteAchieveDB.select(f'userId = "{userId}"')
         self.achieveList.setCurrentRow(-1)
         self.removeBtn.hide()
+        self.viewBtn.hide()
 
     def goBack(self):
         self.vote = VoteWindow()

@@ -5,19 +5,19 @@ class DataBase:
     def __init__(self,tableName,**options) -> None:
         self.tableName = tableName
         self.option = options
-        tableSet = '(' + ', '.join(map(lambda x: f'{x} {options[x]}',options.keys())) + ')'
+        tableSet = ', '.join(map(lambda x: f'{x} {options[x]}',options.keys()))
 
         con = sqlite3.connect(DATABASE_PATH)
         cur = con.cursor()
         tableExist = cur.execute(f"SELECT name FROM sqlite_master WHERE type='table';").fetchall()
         #if table doesn't exist
         if not any(map(lambda x : x[0] == tableName,tableExist)):
-            cur.execute(f'''CREATE TABLE {tableName} {tableSet}''')
+            cur.execute(f'''CREATE TABLE {tableName} (id integer primary key, {tableSet})''')
         con.commit()
         con.close()
     
     def add(self,value):
-        self.excute(f'''INSERT INTO {self.tableName} VALUES{tuple(value)}''')
+        self.excute(f'''INSERT INTO {self.tableName} {tuple(self.option.keys())} VALUES {tuple(value)}''')
     
     def fetchall(self):
         con = sqlite3.connect(DATABASE_PATH)

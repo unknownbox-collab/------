@@ -18,4 +18,9 @@ FORM_END_VOTE          = uic.loadUiType(os.path.join('.','assets','ui','endVote.
 FORM_VOTE_ACHIEVE      = uic.loadUiType(os.path.join('.','assets','ui','voteAchieve.ui'))[0]
 FORM_VIEW_VOTE_ACHIEVE = uic.loadUiType(os.path.join('.','assets','ui','viewVoteAchieve.ui'))[0]
 FORM_FAIL_JOIN_VOTING  = uic.loadUiType(os.path.join('.','assets','ui','failToJoinVoting.ui'))[0]
-FORM_JOIN_AND_VOTING  = uic.loadUiType(os.path.join('.','assets','ui','joinAndVoting.ui'))[0]
+FORM_JOIN_AND_VOTING   = uic.loadUiType(os.path.join('.','assets','ui','joinAndVoting.ui'))[0]
+
+FORM_SHUFFLE_PREPARE   = uic.loadUiType(os.path.join('.','assets','ui','shufflePrepare.ui'))[0]
+FORM_SHUFFLE_SETTING   = uic.loadUiType(os.path.join('.','assets','ui','shuffleSetting.ui'))[0]
+FORM_SHUFFLE_MAIN      = uic.loadUiType(os.path.join('.','assets','ui','shuffleMain.ui'))[0]
+FORM_SHUFFLE_RESULT    = uic.loadUiType(os.path.join('.','assets','ui','shuffleResult.ui'))[0]

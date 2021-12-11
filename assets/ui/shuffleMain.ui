@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>261</height>
+    <width>534</width>
+    <height>349</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,86 +32,44 @@
     <number>-1</number>
    </property>
   </widget>
-  <widget class="QPushButton" name="joinBtn">
+  <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>270</x>
-     <y>110</y>
-     <width>251</width>
+     <x>20</x>
+     <y>20</y>
+     <width>501</width>
+     <height>241</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="viewer"/>
+  </widget>
+  <widget class="QLineEdit" name="exceptInput">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>270</y>
+     <width>301</width>
      <height>31</height>
     </rect>
    </property>
    <property name="font">
     <font>
      <family>Noto Sans CJK KR Black</family>
-     <pointsize>12</pointsize>
      <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color : #FFFCDC;
+    <string notr="true">background-color : white;
 border-radius : 5px;</string>
-   </property>
-   <property name="text">
-    <string>투표방 참여하기</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="voteLabel">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>801</width>
-     <height>71</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Noto Sans CJK KR Black</family>
-     <pointsize>20</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>- V O T E -</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignHCenter|Qt::AlignTop</set>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="achieveBtn">
-   <property name="geometry">
-    <rect>
-     <x>270</x>
-     <y>160</y>
-     <width>251</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Noto Sans CJK KR Black</family>
-     <pointsize>12</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color : rgb(135, 183, 255);
-border-radius : 5px;</string>
-   </property>
-   <property name="text">
-    <string>진행한 투표기록</string>
    </property>
   </widget>
   <widget class="QPushButton" name="goBackBtn">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>220</y>
-     <width>101</width>
+     <x>20</x>
+     <y>310</y>
+     <width>111</width>
      <height>31</height>
     </rect>
    </property>
@@ -131,12 +89,33 @@ border-radius : 5px;</string>
     <string>돌아가기</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="makeBtn">
+  <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
-     <x>270</x>
-     <y>60</y>
-     <width>251</width>
+     <x>20</x>
+     <y>260</y>
+     <width>211</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Noto Sans CJK KR Black</family>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>제외 번호(,로 구분)</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="getResultBtn">
+   <property name="geometry">
+    <rect>
+     <x>410</x>
+     <y>310</y>
+     <width>111</width>
      <height>31</height>
     </rect>
    </property>
@@ -149,11 +128,11 @@ border-radius : 5px;</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color : #FFFCDC;
+    <string notr="true">background-color : #516BEB;
 border-radius : 5px;</string>
    </property>
    <property name="text">
-    <string>투표방 만들기</string>
+    <string>결과 확인</string>
    </property>
   </widget>
  </widget>

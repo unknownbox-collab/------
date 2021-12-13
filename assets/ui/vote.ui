@@ -81,7 +81,7 @@ border-radius : 5px;</string>
     <set>Qt::AlignHCenter|Qt::AlignTop</set>
    </property>
   </widget>
-  <widget class="QPushButton" name="achieveBtn">
+  <widget class="QPushButton" name="archiveBtn">
    <property name="geometry">
     <rect>
      <x>270</x>

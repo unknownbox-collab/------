@@ -1,32 +1,36 @@
-import sys,os,json,firebase_admin,random,time,hashlib
+import random,time,hashlib,copy
 from assets.dataBaseModule import *
 
 from firebase_admin import db
-from firebase_admin import credentials
 from datetime import datetime
 
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import *
-from PyQt5 import QtGui
-from PyQt5 import QtCore
 
-userId = ''
+from main import MainWindow
+from main import userId
+
 voteSubject = []
 voteOptions = []
 voteCount = []
 optionPage = 0
 voteCode = ''
+fireBaseData = {}
 
 voteSelect = []
-voteAchieveDB = DataBase('vote', userId = 'text', result = 'text', date = 'text')
+voteArchiveDB = DataBase('vote', userId = 'text', result = 'text', date = 'text')
 ID = 0
 USER_ID = 1
 RESULT = 2
 DATE = 3
+MainWindow = ''
+userId = ''
+def settingVoteModule(id,window=None):
+    global MainWindow,userId
+    if window is not None : MainWindow = window
+    userId = copy.copy(id)
 
 class GetFireBaseInfo(QThread):
     update = pyqtSignal(bool)
@@ -92,7 +96,7 @@ class VoteWindow(QMainWindow, QWidget, FORM_VOTE):
         self.goBackBtn.clicked.connect(self.goBack)
         self.makeBtn.clicked.connect(self.openMakeVote)
         self.joinBtn.clicked.connect(self.openJoinVote)
-        self.achieveBtn.clicked.connect(self.openAchieve)
+        self.archiveBtn.clicked.connect(self.openArchive)
 
     def goBack(self):
         self.main = MainWindow()
@@ -109,9 +113,9 @@ class VoteWindow(QMainWindow, QWidget, FORM_VOTE):
         self.joinVote.show()
         self.close()
 
-    def openAchieve(self):
-        self.achieve = VoteAchieveWindow()
-        self.achieve.show()
+    def openArchive(self):
+        self.archive = VoteArchiveWindow()
+        self.archive.show()
         self.close()
 
 class SubjectVoteWindow(QMainWindow, QWidget, FORM_SUBJECT_VOTE):
@@ -468,7 +472,7 @@ class EndVoteWindow(QMainWindow, QWidget, FORM_END_VOTE):
         rank = [voteSubject[item]+" : "+', '.join([f'{rank[item][i][0]}({rank[item][i][1]}표)' for i in range(len(rank[item]))]) for item in range(len(rank))]
         now = datetime.now()
         now = str(now.strftime("%Y.%m.%d/%H:%M"))
-        voteAchieveDB.add((userId,str(rank),now))
+        voteArchiveDB.add((userId,str(rank),now))
         self.resultList.addItems(rank)
 
     def ok(self):
@@ -478,7 +482,7 @@ class EndVoteWindow(QMainWindow, QWidget, FORM_END_VOTE):
         self.vote.show()
         self.close()
 
-class VoteAchieveWindow(QMainWindow, QWidget, FORM_VOTE_ACHIEVE):
+class VoteArchiveWindow(QMainWindow, QWidget, FORM_VOTE_ARCHIVE):
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -488,26 +492,26 @@ class VoteAchieveWindow(QMainWindow, QWidget, FORM_VOTE_ACHIEVE):
         self.setupUi(self)
         self.goBackBtn.clicked.connect(self.goBack)
         self.viewBtn.clicked.connect(self.view)
-        self.removeBtn.clicked.connect(self.removeAchieve)
+        self.removeBtn.clicked.connect(self.removeArchive)
         self.removeBtn.hide()
         self.viewBtn.hide()
-        self.achieveList.clicked.connect(self.showTools)
-        self.achieve = voteAchieveDB.select(f'userId = "{userId}"')
-        self.achieveList.addItems(['/'.join(eval(self.achieve[i][RESULT]))[:20]+("..." if len('/'.join(eval(self.achieve[i][RESULT]))) > 20 else "")+" ("+self.achieve[i][DATE]+")" for i in range(len(self.achieve))[::-1]])
+        self.archiveList.clicked.connect(self.showTools)
+        self.archive = voteArchiveDB.select(f'userId = "{userId}"')[::-1]
+        self.archiveList.addItems(['/'.join(eval(self.archive[i][RESULT]))[:20]+("..." if len('/'.join(eval(self.archive[i][RESULT]))) > 20 else "")+" ("+self.archive[i][DATE]+")" for i in range(len(self.archive))])
 
     def view(self):
-        self.vote = ViewVoteAchieveWindow(self.achieveList.currentRow())
+        self.vote = ViewVoteArchiveWindow(self.archiveList.currentRow())
         self.vote.show()
         self.close()
 
-    def removeAchieve(self):
-        deletedItemId = self.achieve[self.achieveList.currentRow()][ID]
-        voteAchieveDB.excute(f'''
+    def removeArchive(self):
+        deletedItemId = self.archive[self.archiveList.currentRow()][ID]
+        voteArchiveDB.excute(f'''
             DELETE FROM 'vote' WHERE id = {deletedItemId}
         ''')
-        self.achieveList.takeItem(self.achieveList.currentRow())
-        self.achieve = voteAchieveDB.select(f'userId = "{userId}"')
-        self.achieveList.setCurrentRow(-1)
+        self.archiveList.takeItem(self.archiveList.currentRow())
+        self.archive = voteArchiveDB.select(f'userId = "{userId}"')
+        self.archiveList.setCurrentRow(-1)
         self.removeBtn.hide()
         self.viewBtn.hide()
 
@@ -520,7 +524,7 @@ class VoteAchieveWindow(QMainWindow, QWidget, FORM_VOTE_ACHIEVE):
         self.removeBtn.show()
         self.viewBtn.show()
 
-class ViewVoteAchieveWindow(QMainWindow, QWidget, FORM_VIEW_VOTE_ACHIEVE):
+class ViewVoteArchiveWindow(QMainWindow, QWidget, FORM_VIEW_VOTE_ARCHIVE):
     def __init__(self,idx):
         super().__init__()
         self.idx = idx
@@ -530,11 +534,11 @@ class ViewVoteAchieveWindow(QMainWindow, QWidget, FORM_VIEW_VOTE_ACHIEVE):
     def initUI(self):
         self.setupUi(self)
         self.goBackBtn.clicked.connect(self.goBack)
-        achieve = voteAchieveDB.select(f'userId = "{userId}"')
-        self.achieveList.addItems(eval(achieve[self.idx][RESULT]))
+        archive = voteArchiveDB.select(f'userId = "{userId}"')
+        self.archiveList.addItems(eval(archive[self.idx][RESULT]))
 
     def goBack(self):
-        self.vote = VoteAchieveWindow()
+        self.vote = VoteArchiveWindow()
         self.vote.show()
         self.close()
 

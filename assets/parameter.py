@@ -1,7 +1,6 @@
 import os
 from PyQt5 import uic
 
-os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATABASE_PATH = os.path.join('.','assets','information.db')
 
 FORM_LOGIN             = uic.loadUiType(os.path.join('.','assets','ui','login.ui'))[0]
@@ -15,8 +14,8 @@ FORM_SUBJECT_VOTE      = uic.loadUiType(os.path.join('.','assets','ui','voteSetS
 FORM_GO_BACK_ALERT     = uic.loadUiType(os.path.join('.','assets','ui','goBackAlert.ui'))[0]
 FORM_WAIT_VOTE         = uic.loadUiType(os.path.join('.','assets','ui','publishedVote.ui'))[0]
 FORM_END_VOTE          = uic.loadUiType(os.path.join('.','assets','ui','endVote.ui'))[0]
-FORM_VOTE_ACHIEVE      = uic.loadUiType(os.path.join('.','assets','ui','voteAchieve.ui'))[0]
-FORM_VIEW_VOTE_ACHIEVE = uic.loadUiType(os.path.join('.','assets','ui','viewVoteAchieve.ui'))[0]
+FORM_VOTE_ARCHIVE      = uic.loadUiType(os.path.join('.','assets','ui','voteArchive.ui'))[0]
+FORM_VIEW_VOTE_ARCHIVE = uic.loadUiType(os.path.join('.','assets','ui','viewVoteArchive.ui'))[0]
 FORM_FAIL_JOIN_VOTING  = uic.loadUiType(os.path.join('.','assets','ui','failToJoinVoting.ui'))[0]
 FORM_JOIN_AND_VOTING   = uic.loadUiType(os.path.join('.','assets','ui','joinAndVoting.ui'))[0]
 
@@ -24,3 +23,7 @@ FORM_SHUFFLE_PREPARE   = uic.loadUiType(os.path.join('.','assets','ui','shuffleP
 FORM_SHUFFLE_SETTING   = uic.loadUiType(os.path.join('.','assets','ui','shuffleSetting.ui'))[0]
 FORM_SHUFFLE_MAIN      = uic.loadUiType(os.path.join('.','assets','ui','shuffleMain.ui'))[0]
 FORM_SHUFFLE_RESULT    = uic.loadUiType(os.path.join('.','assets','ui','shuffleResult.ui'))[0]
+
+FORM_RECEIVE_MESSAGE   = uic.loadUiType(os.path.join('.','assets','ui','receiveMessage.ui'))[0]
+FORM_SEND_MESSAGE      = uic.loadUiType(os.path.join('.','assets','ui','sendMessage.ui'))[0]
+FORM_MESSAGE_MENU      = uic.loadUiType(os.path.join('.','assets','ui','messegerMenu.ui'))[0]

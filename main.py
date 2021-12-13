@@ -1,40 +1,57 @@
-import sys,os,json,firebase_admin,random,time,hashlib,PyQt5
+import sys,os,firebase_admin,threading,time,hashlib
+
+from firebase_admin.db import reference
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from firebase_admin import db
 from firebase_admin import credentials
-from datetime import datetime
 
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import *
-from PyQt5 import QtGui
-from PyQt5 import QtCore
+
 from assets.dataBaseModule import *
 from assets.vote import *
+from assets.shuffle import *
 try:
-    db_url = 'https://ham2021-main-project-default-rtdb.asia-southeast1.firebasedatabase.app/'
-    cred = credentials.Certificate(os.path.join('.','assets','key.json'))
-    default_app = firebase_admin.initialize_app(cred, {'databaseURL':db_url})
-
-    userId = ''
-    fireBaseData = {}
-
-    shuffle_col = 1
-    shuffle_row = 1
-    shuffle_number = [1]
-    shuffle_location = []
-
-    shuffleAchieveDB = DataBase('shuffle', userId = 'text', rowAndCol = 'text', shuffled = 'text', location = 'text', date = 'text')
+    msgArchiveDB = DataBase('message', userId = 'text', by = 'text', content = 'text', new = 'BOOLEAN', date = 'text')
     ID = 0
     USER_ID = 1
-    ROW_AND_COL = 2
-    SHUFFLED = 3
-    LOCATION = 4
+    BY = 2
+    CONTENT = 3
+    NEW = 4
     DATE = 5
+
+    msgArchiveData = None
+
+    class GetMessage(QThread):
+        update = pyqtSignal(bool)
+        def __init__(self):
+            QThread.__init__(self)
+            self.working = True
+            self.daemon = True
+
+        def run(self):
+            m = hashlib.sha256()
+            m.update(userId.encode('utf-8'))
+            userHash = m.hexdigest()
+            ref = db.reference(f'message/{userHash}')
+            while self.working:
+                infoList = ref.get()
+                archive = msgArchiveDB.select(f'userId = "{userId}"')
+                now = datetime.now()
+                now = str(now.strftime("%Y.%m.%d/%H:%M"))
+                popped = 0
+                if infoList is not None:
+                    for i in range(len(infoList)):
+                        info = infoList[i-popped]
+                        if not (userId,info[0],str([info[1],info[2],info[3]]),True,info[4]) in archive:
+                            ref = db.reference(f'message/{userHash}/{i-popped}')
+                            ref.delete()
+                            msgArchiveDB.add((userId,info[0],str([info[1],info[2],info[3]]),True,info[4]))
+                            popped += 1
+                            self.update.emit(True)
+                time.sleep(1)
 
     class LoginWindow(QMainWindow, QWidget, FORM_LOGIN):
         def __init__(self):
@@ -62,6 +79,11 @@ try:
         def login(self):
             global userId
             userId = self.numberInput.text()
+            settingShuffleModule(userId)
+            settingVoteModule(userId)
+            loginId = open(os.path.join('.','assets','login.txt'),'w')
+            loginId.write(userId)
+            loginId.close()
             self.main = MainWindow()
             self.main.show()
             self.close()
@@ -109,9 +131,17 @@ try:
             self.shuffleBtn.clicked.connect(self.openShuffle)
             self.voteBtn.clicked.connect(self.openVote)
             self.welcomeLabel.setText(f'{userId}님 반갑습니다!')
+            self.newMessage.hide()
+            archive = msgArchiveDB.select(f"userId = '{userId}' AND new = True")
+            if len(archive) != 0 :
+                self.newMessage.show()
+            msgGetter.update.connect(self.newMessage.show)
 
         def openMessenger(self):
-            self.messenger = MessengerWindow()
+            if teacherPermission:
+                self.messenger = MessengerMenuWindow()
+            else:
+                self.messenger = ReceiveMessengerWindow()
             self.messenger.show()
             self.close()
 
@@ -126,13 +156,18 @@ try:
             self.close()
 
         def logout(self):
-            global userId
+            global userId,teacherPermission
             userId = ''
+            loginId = open(os.path.join('.','assets','login.txt'),'w')
+            loginId.write('')
+            loginId.close()
+            teacherPermission = False
             self.LoginWindow = LoginWindow()
             self.LoginWindow.show()
             self.close()
     
-    class ShufflePrepareWindow(QMainWindow, QWidget, FORM_SHUFFLE_PREPARE):
+################################################################################################
+    class ReceiveMessengerWindow(QMainWindow, QWidget, FORM_RECEIVE_MESSAGE):
         def __init__(self):
             super().__init__()
             self.initUI()
@@ -141,231 +176,168 @@ try:
         def initUI(self):
             self.setupUi(self)
             self.goBackBtn.clicked.connect(self.goBack)
-            self.makeBtn.clicked.connect(self.setting)
-            self.achieveBtn.clicked.connect(self.achieve)
-        
-        def setting(self):
-            self.settingWindow = ShuffleSettingWindow()
-            self.settingWindow.show()
-            self.close()
-        
-        def goBack(self):
-            self.back = MainWindow()
-            self.back.show()
-            self.close()
-        
-        def achieve(self):
-            self.achieveWindow = ShuffleAchieveWindow()
-            self.achieveWindow.show()
-            self.close()
-    
-    class ShuffleSettingWindow(QMainWindow, QWidget, FORM_SHUFFLE_SETTING):
-        def __init__(self):
-            super().__init__()
-            self.initUI()
-            self.show()
-        
-        def initUI(self):
-            self.setupUi(self)
-            self.goBackBtn.clicked.connect(self.goBack)
-            self.okBtn.clicked.connect(self.ok)
-            self.rowSpinBox.setValue(shuffle_row)
-            self.colSpinBox.setValue(shuffle_col)
-            self.numberSpinBox.setValue(max(shuffle_number))
-        
-        def goBack(self):
-            self.back = ShufflePrepareWindow()
-            self.back.show()
-            self.close()
-        
-        def ok(self):
-            global shuffle_row, shuffle_col, shuffle_number, shuffle_location
-            shuffle_row,shuffle_col,shuffle_number = self.rowSpinBox.value(), self.colSpinBox.value(), list(range(1,1+self.numberSpinBox.value()))
-            shuffle_location = [[True for x in range(shuffle_row)] for y in range(shuffle_col)]
-            self.next = ShuffleMainWindow()
-            self.next.show()
-            self.close()
-        
-    class SeatButton:
-        def __init__(self,location,color = 'rgb(39, 197, 255)',option = 0) -> None:
-            self.x, self.y = location[0],location[1]
-            self.button = QPushButton('')
-            self.changeColor(color)
-            self.button.setMinimumHeight(10)
-            self.button.setMinimumWidth(10)
-            self.button.setMaximumHeight(100)
-            self.button.setMaximumWidth(100)
-            if option == 0: self.button.clicked.connect(lambda : self.clicked(self.x,self.y))
-            if option == 1:
-                if shuffle_location[self.y][self.x]:
-                    self.changeColor('rgb(255, 255, 255)')
-                else:
-                    self.changeColor('rgb(255, 54, 14)')
-            if option == 2:
-                if (self.x,self.y) in shuffle_location:
-                    self.changeColor('rgb(255, 255, 255)')
-                else:
-                    self.changeColor('rgb(255, 54, 14)')
-        
-        def clicked(self,x,y):
-            global shuffle_location
-            shuffle_location[y][x] = not shuffle_location[y][x]
-            if shuffle_location[y][x]:
-                self.changeColor('rgb(39, 197, 255)')
-            else:
-                self.changeColor('rgb(255, 54, 14)')
-        
-        def changeColor(self,color):
-            self.button.setStyleSheet(f'''
-                font-family: 'Noto Sans CJK KR Black';
-                font-size : 12px;
-                color : black;
-                background-color : {color};
-                border-radius : 5px;
-            ''')
-    
-    class ShuffleMainWindow(QMainWindow, QWidget, FORM_SHUFFLE_MAIN):
-        def __init__(self):
-            super().__init__()
-            self.initUI()
-            self.show()
-        
-        def initUI(self):
-            self.setupUi(self)
-            self.goBackBtn.clicked.connect(self.goBack)
-            for y in range(shuffle_col):
-                for x in range(shuffle_row):
-                    self.viewer.addWidget(SeatButton((x,y)).button,y,x)
-            self.getResultBtn.clicked.connect(self.getResult)
-        
-        def goBack(self):
-            self.back = ShuffleSettingWindow()
-            self.back.show()
-            self.close()
-        
-        def getResult(self):
-            exceptNums = self.exceptInput.text().split(',')
-            for num in exceptNums:
-                if num in shuffle_number:
-                    del shuffle_number[num]
-            random.shuffle(shuffle_number)
-            shuffled = shuffle_number
-            sumOfAvail = 0
-            for y in range(shuffle_col):
-                for x in range(shuffle_row):
-                    sumOfAvail += int(shuffle_location[y][x])
-            fitNum = min(len(shuffled),sumOfAvail)
-            shuffled = shuffled[:fitNum]
-            location = []
-            for i in range(fitNum):
-                x = random.randint(0,shuffle_row-1)
-                y = random.randint(0,shuffle_col-1)
-                while (x,y) in location or not shuffle_location[y][x]:
-                    x = random.randint(0,shuffle_row-1)
-                    y = random.randint(0,shuffle_col-1)
-                location.append((x,y))
-            self.result = ShuffleResultWindow(shuffled,location)
-            self.result.show()
-            self.close()
-    
-    class ShuffleResultWindow(QMainWindow, QWidget, FORM_SHUFFLE_RESULT):
-        def __init__(self,shuffled,location):
-            super().__init__()
-            self.location = location
-            self.shuffled = shuffled
-            self.initUI()
-            self.show()
-        
-        def initUI(self):
-            self.setupUi(self)
-            self.okBtn.clicked.connect(self.end)
-            now = datetime.now()
-            now = str(now.strftime("%Y.%m.%d/%H:%M:%S"))
-            shuffleAchieveDB.add((userId,f'{str(shuffle_row)}x{str(shuffle_col)}',str(self.shuffled),str(self.location),now))
-            for y in range(shuffle_col):
-                for x in range(shuffle_row):
-                    self.viewer.addWidget(SeatButton((x,y),option=1).button,y,x)
-            for location in self.location:
-                self.viewer.itemAtPosition(location[1],location[0]).widget().setText(str(self.shuffled.pop()))
-        
-        def end(self):
-            self.shufflePrepare = ShufflePrepareWindow()
-            self.shufflePrepare.show()
-            self.close()
-        
-    class ShuffleAchieveWindow(QMainWindow, QWidget, FORM_VOTE_ACHIEVE):
-        def __init__(self):
-            super().__init__()
-            self.initUI()
-            self.show()
-        
-        def initUI(self):
-            self.setupUi(self)
-            self.achieve = shuffleAchieveDB.select(f'userId = "{userId}"')
-            self.achieveList.addItems([item[DATE] for item in self.achieve][::-1])
-            self.removeBtn.hide()
-            self.viewBtn.hide()
-            self.achieveList.clicked.connect(self.showTools)
-            self.viewBtn.clicked.connect(self.view)
-            self.removeBtn.clicked.connect(self.removeAchieve)
-            self.goBackBtn.clicked.connect(self.goBack)
-
-        def removeAchieve(self):
-            deletedItemId = self.achieve[self.achieveList.currentRow()][ID]
-            shuffleAchieveDB.excute(f'''
-                DELETE FROM 'shuffle' WHERE id = {deletedItemId}
-            ''')
-            self.achieveList.takeItem(self.achieveList.currentRow())
-            self.achieve = shuffleAchieveDB.select(f'userId = "{userId}"')
-            self.achieveList.setCurrentRow(-1)
-            self.removeBtn.hide()
-            self.viewBtn.hide()
+            self.receiveList.itemDoubleClicked.connect(self.view)
+            self.archive = msgArchiveDB.select(f'userId = "{userId}"')[::-1]
+            if len(self.archive):
+                when, where, msg = eval(self.archive[CONTENT])
+                self.receiveList.addItems(f'{self.archive[BY]}({self.archive[DATE]}) : {msg[:10] + ("..." if len(msg) > 10 else "")}')
 
         def view(self):
-            self.vote = ViewShuffleAchieveWindow(self.achieve[self.achieveList.currentRow()])
+            self.vote = ViewVoteArchiveWindow(self.archiveList.currentRow())
             self.vote.show()
             self.close()
-        
-        def goBack(self):
-            self.pre = ShufflePrepareWindow()
-            self.pre.show()
-            self.close()
 
-        def showTools(self):
-            self.removeBtn.show()
-            self.viewBtn.show()
+        def removeArchive(self):
+            deletedItemId = self.archive[self.archiveList.currentRow()][ID]
+            msgArchiveDB.excute(f'''
+                DELETE FROM 'vote' WHERE id = {deletedItemId}
+            ''')
+            self.archiveList.takeItem(self.archiveList.currentRow())
+            self.archive = msgArchiveDB.select(f'userId = "{userId}"')
+            self.archiveList.setCurrentRow(-1)
+            self.removeBtn.hide()
+            self.viewBtn.hide()
+
+        def goBack(self):
+            if not teacherPermission:
+                self.pre = MainWindow()
+                self.pre.show()
+            else:
+                self.pre = MessengerMenuWindow()
+                self.pre.show()
+            self.close()
+        
+        def checkNew():
+            archive = msgArchiveDB.select(f'userId = "{userId}" AND new = True')
     
-    class ViewShuffleAchieveWindow(QMainWindow, QWidget, FORM_SHUFFLE_RESULT):
-        def __init__(self,achieve):
+    class MessengerMenuWindow(QMainWindow, QWidget, FORM_MESSAGE_MENU):
+        def __init__(self):
             super().__init__()
-            self.achieve = achieve
             self.initUI()
             self.show()
-        
-        def initUI(self):
-            global shuffle_location
-            self.setupUi(self)
-            self.okBtn.clicked.connect(self.goBack)
-            row,col = map(int,self.achieve[ROW_AND_COL].split('x'))
-            self.location = eval(self.achieve[LOCATION])
-            self.shuffled = eval(self.achieve[SHUFFLED])
-            shuffle_location = self.location
-            for y in range(col):
-                for x in range(row):
-                    self.viewer.addWidget(SeatButton((x,y),option=2).button,y,x)
-            for location in self.location:
-                x = location[0]
-                y = location[1]
-                self.viewer.itemAtPosition(y,x).widget().setText(str(self.shuffled.pop()))
 
+        def initUI(self):
+            self.setupUi(self)
+            self.goBackBtn.clicked.connect(self.goBack)
+            self.sendBtn.clicked.connect(self.goSend)
+            self.quickSendBtn.clicked.connect(self.goSend)
+            self.archiveBtn.clicked.connect(self.goArchive)
+            self.newMessage.hide()
+            archive = msgArchiveDB.select(f"userId = '{userId}' AND new = True")
+            if len(archive) != 0 :
+                self.newMessage.show()
+            msgGetter.update.connect(self.newMessage.show)
+        
         def goBack(self):
-            self.pre = ShuffleAchieveWindow()
+            self.pre = MainWindow()
+            self.pre.show()
+            self.close()
+        
+        def goSend(self):
+            self.post = MessengerSendWindow()
+            self.post.show()
+            self.close()
+
+        def goArchive(self):
+            self.post = ReceiveMessengerWindow()
+            self.post.show()
+            self.close()
+    
+    class MessengerSendWindow(QMainWindow, QWidget, FORM_SEND_MESSAGE):
+        def __init__(self):
+            super().__init__()
+            self.initUI()
+            self.show()
+
+        def initUI(self):
+            self.setupUi(self)
+            self.goBackBtn.clicked.connect(self.goBack)
+            self.sendBtn.clicked.connect(self.send)
+        
+        def send(self):
+            option = (self.option_1.isChecked()*1 + self.option_2.isChecked()*2)
+            targetGrade = self.gradeNumberSpinBox.value()
+            targetClass = self.classNumberSpinBox.value()
+            targetName = self.nameComboBox.currentText()
+            
+            targetEnter = self.enterNumberLineEdit.text()
+            
+            dueTime = self.dueTimeEdit.dateTime().toString(self.dateTimeEdit.displayFormat())
+            whereToGo = self.whereInput.text()
+            additionalMsg = self.msgInput.toPlainText()
+            if option == 1:
+                target = f'{str(targetGrade)}.{str(targetClass)}.{targetName}'
+                m = hashlib.sha256()
+                m.update(target.encode('utf-8'))
+                targetHash = m.hexdigest()
+            elif option == 2:
+                target = targetEnter
+                m = hashlib.sha256()
+                m.update(target.encode('utf-8'))
+                targetHash = m.hexdigest()
+            now = datetime.now()
+            now = str(now.strftime("%Y.%m.%d/%H:%M"))
+            ref = db.reference(f"message/{targetHash}")
+            info = ref.get()
+            if info is not None:
+                ref.update({len(info):[userId,dueTime,whereToGo,additionalMsg,now]})
+            else:
+                ref.update({0 : [userId,dueTime,whereToGo,additionalMsg,now]})
+            self.pre = MessengerMenuWindow()
             self.pre.show()
             self.close()
 
+        def goBack(self):
+            self.pre = MessengerMenuWindow()
+            self.pre.show()
+            self.close()
+    
+    class FailJoinVoteWindow(QMainWindow, QWidget, FORM_FAIL_JOIN_VOTING):
+        def __init__(self,option = 0):
+            super().__init__()
+            self.option = option
+            self.initUI()
+            self.show()
+
+        def initUI(self):
+            self.setupUi(self)
+            self.goBackBtn.clicked.connect(self.goBack)
+            self.reasonLabel.setText('성공적으로 송신되었습니다!')
+            self.goBackBtn.setText('확인')
+            self.goBackBtn.setStyleSheet('''
+                background-color : #516BEB;
+                border-radius : 5px;
+            ''')
+
+        def goBack(self):
+            self.vote = MessengerSendWindow()
+            self.vote.show()
+            self.close()
+    
     if __name__ == '__main__':
+        db_url = 'https://ham2021-main-project-default-rtdb.asia-southeast1.firebasedatabase.app/'
+        cred = credentials.Certificate(os.path.join('.','assets','key.json'))
+        default_app = firebase_admin.initialize_app(cred, {'databaseURL':db_url})
+
+        userId = ''
+        teacherPermission = True
+
+        msgGetter = GetMessage()
+        msgGetter.start()
+
+        settingShuffleModule(userId,MainWindow)
+        settingVoteModule(userId,MainWindow)
         app = QApplication(sys.argv)
-        win = LoginWindow()
+        loginId = open(os.path.join('.','assets','login.txt'),'r')
+        tempId = loginId.read()
+        loginId.close()
+        if tempId == '':
+            win = LoginWindow()
+        else:
+            userId = tempId
+            settingShuffleModule(userId)
+            settingVoteModule(userId)
+            win = MainWindow()
         sys.exit(app.exec_())
 
 except Exception as e:

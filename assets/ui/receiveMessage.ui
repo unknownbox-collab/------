@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>801</width>
-    <height>204</height>
+    <width>570</width>
+    <height>303</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>0</y>
+     <y>-10</y>
      <width>801</width>
-     <height>371</height>
+     <height>331</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -32,61 +32,11 @@
     <number>-1</number>
    </property>
   </widget>
-  <widget class="QPushButton" name="makeBtn">
-   <property name="geometry">
-    <rect>
-     <x>270</x>
-     <y>40</y>
-     <width>251</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Noto Sans CJK KR Black</family>
-     <pointsize>12</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color : #FFFCDC;
-border-radius : 5px;</string>
-   </property>
-   <property name="text">
-    <string>자리 뽑기</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="archiveBtn">
-   <property name="geometry">
-    <rect>
-     <x>270</x>
-     <y>100</y>
-     <width>251</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Noto Sans CJK KR Black</family>
-     <pointsize>12</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color : rgb(135, 183, 255);
-border-radius : 5px;</string>
-   </property>
-   <property name="text">
-    <string>자리배치 기록</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="goBackBtn">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>160</y>
+     <y>260</y>
      <width>101</width>
      <height>31</height>
     </rect>
@@ -105,6 +55,44 @@ border-radius : 5px;</string>
    </property>
    <property name="text">
     <string>돌아가기</string>
+   </property>
+  </widget>
+  <widget class="QListWidget" name="receiveList">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>551</width>
+     <height>211</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color : white;
+border-radius : 5px;</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>571</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Noto Sans CJK KR Black</family>
+     <pointsize>15</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>받은 메세지 보관함</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
  </widget>

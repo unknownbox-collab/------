@@ -32,11 +32,11 @@ try:
             self.daemon = True
 
         def run(self):
-            m = hashlib.sha256()
-            m.update(userId.encode('utf-8'))
-            userHash = m.hexdigest()
-            ref = db.reference(f'message/{userHash}')
             while self.working:
+                m = hashlib.sha256()
+                m.update(userId.encode('utf-8'))
+                userHash = m.hexdigest()
+                ref = db.reference(f'message/{userHash}')
                 infoList = ref.get()
                 archive = msgArchiveDB.select(f'userId = "{userId}"')
                 now = datetime.now()
@@ -51,7 +51,7 @@ try:
                             msgArchiveDB.add((userId,info[0],str([info[1],info[2],info[3]]),True,info[4]))
                             popped += 1
                             self.update.emit(True)
-                time.sleep(1)
+                time.sleep(0.5)
 
     class LoginWindow(QMainWindow, QWidget, FORM_LOGIN):
         def __init__(self):
@@ -135,6 +135,7 @@ try:
             archive = msgArchiveDB.select(f"userId = '{userId}' AND new = True")
             if len(archive) != 0 :
                 self.newMessage.show()
+            msgGetter.start()
             msgGetter.update.connect(self.newMessage.show)
 
         def openMessenger(self):
@@ -178,23 +179,25 @@ try:
             self.goBackBtn.clicked.connect(self.goBack)
             self.receiveList.itemDoubleClicked.connect(self.view)
             self.archive = msgArchiveDB.select(f'userId = "{userId}"')[::-1]
+            msgGetter.update.connect(self.checkNew)
             if len(self.archive):
-                when, where, msg = eval(self.archive[CONTENT])
-                self.receiveList.addItems(f'{self.archive[BY]}({self.archive[DATE]}) : {msg[:10] + ("..." if len(msg) > 10 else "")}')
+                for history in self.archive:
+                    when, where, msg = eval(history[CONTENT])
+                    self.receiveList.addItem(f'{history[BY]}({history[DATE]}) : {msg[:10] + ("..." if len(msg) > 10 else "")}')
 
         def view(self):
-            self.vote = ViewVoteArchiveWindow(self.archiveList.currentRow())
+            self.vote = ViewVoteArchiveWindow(self.archive[self.receiveList.currentRow()])
             self.vote.show()
             self.close()
 
         def removeArchive(self):
-            deletedItemId = self.archive[self.archiveList.currentRow()][ID]
+            deletedItemId = self.archive[self.receiveList.currentRow()][ID]
             msgArchiveDB.excute(f'''
                 DELETE FROM 'vote' WHERE id = {deletedItemId}
             ''')
-            self.archiveList.takeItem(self.archiveList.currentRow())
+            self.receiveList.takeItem(self.receiveList.currentRow())
             self.archive = msgArchiveDB.select(f'userId = "{userId}"')
-            self.archiveList.setCurrentRow(-1)
+            self.receiveList.setCurrentRow(-1)
             self.removeBtn.hide()
             self.viewBtn.hide()
 
@@ -207,8 +210,13 @@ try:
                 self.pre.show()
             self.close()
         
-        def checkNew():
-            archive = msgArchiveDB.select(f'userId = "{userId}" AND new = True')
+        @pyqtSlot(bool)
+        def checkNew(self):
+            self.archive = msgArchiveDB.select(f'userId = "{userId}" AND new = True')
+            if len(self.archive):
+                for history in self.archive:
+                    when, where, msg = eval(history[CONTENT])
+                    self.receiveList.addItem(f'{history[BY]}({history[DATE]}) : {msg[:10] + ("..." if len(msg) > 10 else "")}')
     
     class MessengerMenuWindow(QMainWindow, QWidget, FORM_MESSAGE_MENU):
         def __init__(self):
@@ -226,6 +234,7 @@ try:
             archive = msgArchiveDB.select(f"userId = '{userId}' AND new = True")
             if len(archive) != 0 :
                 self.newMessage.show()
+            msgGetter.start()
             msgGetter.update.connect(self.newMessage.show)
         
         def goBack(self):
@@ -262,7 +271,7 @@ try:
             
             targetEnter = self.enterNumberLineEdit.text()
             
-            dueTime = self.dueTimeEdit.dateTime().toString(self.dateTimeEdit.displayFormat())
+            dueTime = self.dueTimeEdit.dateTime().toString(self.dueTimeEdit.displayFormat())
             whereToGo = self.whereInput.text()
             additionalMsg = self.msgInput.toPlainText()
             if option == 1:
@@ -314,13 +323,39 @@ try:
             self.vote.show()
             self.close()
     
+    class ViewVoteArchiveWindow(QMainWindow, QWidget, FORM_VIEW_MESSAGE_ARCHIVE):
+        def __init__(self,data):
+            super().__init__()
+            self.data = data
+            self.initUI()
+            self.show()
+
+        def initUI(self):
+            self.setupUi(self)
+            msgArchiveDB.update(f'id = "{self.data[ID]}"','new',0)
+            self.goBackBtn.clicked.connect(self.goBack)
+            self.checkBtn.setIcon(QIcon(os.path.join('.','assets','image','yes.png')))
+            self.checkBtn.setIconSize(QSize(101,101))
+            self.notForNowBtn.setIcon(QIcon(os.path.join('.','assets','image','no.png')))
+            self.notForNowBtn.setIconSize(QSize(101,101))
+            self.fromLbl.setText(f'{self.data[BY]}님 발신({self.data[DATE]})')
+            when, where, msg = eval(self.data[CONTENT])
+            self.whereLbl.setText(f'{where} (으)로')
+            self.dueTimeLbl.setText(f'{when} 까지')
+            self.additionalMsg.setPlainText(msg)
+
+        def goBack(self):
+            self.pre = ReceiveMessengerWindow()
+            self.pre.show()
+            self.close()
+    
     if __name__ == '__main__':
         db_url = 'https://ham2021-main-project-default-rtdb.asia-southeast1.firebasedatabase.app/'
         cred = credentials.Certificate(os.path.join('.','assets','key.json'))
         default_app = firebase_admin.initialize_app(cred, {'databaseURL':db_url})
 
         userId = ''
-        teacherPermission = True
+        teacherPermission = False
 
         msgGetter = GetMessage()
         msgGetter.start()

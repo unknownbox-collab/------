@@ -12,7 +12,6 @@ class DataBase:
         #tableExist = cur.execute(f"SELECT name FROM sqlite_master WHERE type='table';").fetchall()
         #if table doesn't exist
         #if not any(map(lambda x : x[0] == tableName,tableExist)):
-        print(f'''CREATE TABLE IF NOT EXISTS {tableName} (id INTEGER PRIMARY KEY AUTOINCREMENT, {tableSet})''')
         cur.execute(f'''CREATE TABLE IF NOT EXISTS {tableName} (id INTEGER PRIMARY KEY AUTOINCREMENT, {tableSet})''')
         con.commit()
         con.close()

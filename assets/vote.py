@@ -35,7 +35,7 @@ def settingVoteModule(id,window=None):
 class GetFireBaseInfo(QThread):
     update = pyqtSignal(bool)
     def __init__(self, interest):
-        QThread.__init__(self) 
+        QThread.__init__(self)
         self.interest = interest
         self.working = True
     

@@ -45,6 +45,7 @@ try:
                 if infoList is not None:
                     for i in range(len(infoList)):
                         info = infoList[i-popped]
+                        print(info)
                         if not (userId,info[0],str([info[1],info[2],info[3]]),True,info[4]) in archive:
                             ref = db.reference(f'message/{userHash}/{i-popped}')
                             ref.delete()
@@ -162,7 +163,7 @@ try:
             loginId = open(os.path.join('.','assets','login.txt'),'w')
             loginId.write('')
             loginId.close()
-            teacherPermission = False
+            teacherPermission = True
             self.LoginWindow = LoginWindow()
             self.LoginWindow.show()
             self.close()
@@ -186,7 +187,7 @@ try:
                     self.receiveList.addItem(f'{history[BY]}({history[DATE]}) : {msg[:10] + ("..." if len(msg) > 10 else "")}')
 
         def view(self):
-            self.vote = ViewVoteArchiveWindow(self.archive[self.receiveList.currentRow()])
+            self.vote = ViewMsgArchiveWindow(self.archive[self.receiveList.currentRow()])
             self.vote.show()
             self.close()
 
@@ -228,6 +229,7 @@ try:
             self.setupUi(self)
             self.goBackBtn.clicked.connect(self.goBack)
             self.sendBtn.clicked.connect(self.goSend)
+            self.quickSendBtn.hide()
             self.quickSendBtn.clicked.connect(self.goSend)
             self.archiveBtn.clicked.connect(self.goArchive)
             self.newMessage.hide()
@@ -323,7 +325,7 @@ try:
             self.vote.show()
             self.close()
     
-    class ViewVoteArchiveWindow(QMainWindow, QWidget, FORM_VIEW_MESSAGE_ARCHIVE):
+    class ViewMsgArchiveWindow(QMainWindow, QWidget, FORM_VIEW_MESSAGE_ARCHIVE):
         def __init__(self,data):
             super().__init__()
             self.data = data
@@ -336,26 +338,92 @@ try:
             self.goBackBtn.clicked.connect(self.goBack)
             self.checkBtn.setIcon(QIcon(os.path.join('.','assets','image','yes.png')))
             self.checkBtn.setIconSize(QSize(101,101))
+            self.checkBtn.clicked.connect(self.sendYes)
+            
             self.notForNowBtn.setIcon(QIcon(os.path.join('.','assets','image','no.png')))
             self.notForNowBtn.setIconSize(QSize(101,101))
+            self.notForNowBtn.clicked.connect(self.sendNo)
+
+            if teacherPermission:
+                self.checkBtn.hide()
+                self.notForNowBtn.hide()
+                self.setGeometry(0,0,800,440)
+                self.goBackBtn.move(10,380)
+
             self.fromLbl.setText(f'{self.data[BY]}님 발신({self.data[DATE]})')
             when, where, msg = eval(self.data[CONTENT])
             self.whereLbl.setText(f'{where} (으)로')
             self.dueTimeLbl.setText(f'{when} 까지')
             self.additionalMsg.setPlainText(msg)
 
+        def sendNo(self):
+            target = self.data[BY]
+            m = hashlib.sha256()
+            m.update(target.encode('utf-8'))
+            targetHash = m.hexdigest()
+            now = datetime.now()
+            now = str(now.strftime("%Y.%m.%d/%H:%M"))
+            ref = db.reference(f"message/{targetHash}")
+            info = ref.get()
+            if info is not None:
+                ref.update({len(info):[userId,'','',"지금은 갈 수 없습니다.",now]})
+            else:
+                ref.update({0 : [userId,'','',"지금은 갈 수 없습니다.",now]})
+            self.okWin = OkWindow(self.data)
+            self.okWin.show()
+            self.close()
+        
+        def sendYes(self):
+            target = self.data[BY]
+            m = hashlib.sha256()
+            m.update(target.encode('utf-8'))
+            targetHash = m.hexdigest()
+            now = datetime.now()
+            now = str(now.strftime("%Y.%m.%d/%H:%M"))
+            ref = db.reference(f"message/{targetHash}")
+            info = ref.get()
+            if info is not None:
+                ref.update({len(info):[userId,'','',"확인하였습니다.",now]})
+            else:
+                ref.update({0 : [userId,'','',"확인하였습니다.",now]})
+            self.okWin = OkWindow(self.data)
+            self.okWin.show()
+            self.close()
+
         def goBack(self):
             self.pre = ReceiveMessengerWindow()
             self.pre.show()
             self.close()
     
+    class OkWindow(QMainWindow, QWidget, FORM_FAIL_JOIN_VOTING):
+        def __init__(self,data):
+            super().__init__()
+            self.data = data
+            self.initUI()
+            self.show()
+    
+        def initUI(self):
+            self.setupUi(self)
+            self.goBackBtn.clicked.connect(self.goBack)
+            self.reasonLabel.setText('성공적으로 제출되었습니다!')
+            self.goBackBtn.setText('확인')
+            self.goBackBtn.setStyleSheet('''
+                background-color : #516BEB;
+                border-radius : 5px;
+            ''')
+    
+        def goBack(self):
+            self.vote = ViewMsgArchiveWindow(self.data)
+            self.vote.show()
+            self.close()
+
     if __name__ == '__main__':
         db_url = 'https://ham2021-main-project-default-rtdb.asia-southeast1.firebasedatabase.app/'
         cred = credentials.Certificate(os.path.join('.','assets','key.json'))
         default_app = firebase_admin.initialize_app(cred, {'databaseURL':db_url})
 
         userId = ''
-        teacherPermission = False
+        teacherPermission = True
 
         msgGetter = GetMessage()
         msgGetter.start()
@@ -374,7 +442,6 @@ try:
             settingVoteModule(userId)
             win = MainWindow()
         sys.exit(app.exec_())
-
 except Exception as e:
     print(e)
     input()
